@@ -21,7 +21,7 @@ def move2cuda(data):
 
 def print_info(func):
     @functools.wraps(func)
-    def wrapper(model, criterion, source, target_input, target_output,
+    def wrapper(model, criterion, source, target_input, target_output, 
                 info, batch, PAD_index, print_flag, rank, world_size):
         total_tok = info['total_tok']
         cnt = info['cnt']
@@ -45,8 +45,7 @@ def print_info(func):
             total_time = time.time() - st_time
             st_time = time.time()
             if rank == 0:
-                print(f'Batch: {batch}\tloss: {round(total_loss / cnt, 6)}\t\
-                        Tok pre Sec: {int(total_tok / total_time)}\t\tTime: {int(total_time)}')
+                print(f'Batch: {batch}\tloss: {round(total_loss / cnt, 4)}\tTok pre Sec: {int(total_tok / total_time)}\t\tTime: {int(total_time)}')
             total_loss = 0
             cnt = 0
             total_tok = 0

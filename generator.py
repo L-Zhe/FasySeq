@@ -9,7 +9,7 @@ from    utils.makeModel import make_model
 from    utils.tools import save2file
 from    utils.checkpoint import load_model
 from    utils.eval import Eval
-from    preprocess import data_process, data_loader
+from    preprocess import data_process, get_data, restore_rank
 import  os
 from    os import environ
 import  pickle
@@ -94,19 +94,19 @@ def _main():
         else:
             args.max_length = min(args.max_length, args.max_tgt_position)
     model = make_model(args, model_state_dict, 0, False)
-    if args.file is not None:
-        with open(args.file, 'rb') as f:
-            data = pickle.load(f)
-
-    else:
+    if args.file is None:
         src_word2index, _ = load_vocab(args.src_vocab)
         source = data_process(filelist=[args.raw_file],
                               word2index=src_word2index)
+        max_src_len = max(len(seq) for seq in source)
 
-        data = data_loader(source=source,
-                           PAD_index=constants.PAD_index)
+        data = {'source': source,
+                'max_src_len': max_src_len}
 
-    dataset, batch_size = data.set_param(False, args)
+    dataset, rank, batch_size = get_data(args=args,
+                                         data=data)
+    if args.file is None:
+        del data, source, src_word2index
     dataset = DataLoader(dataset=dataset,
                          batch_size=batch_size,
                          shuffle=False,
@@ -118,7 +118,7 @@ def _main():
                          model=model)
 
     outputs = generate()
-    outputs = data.restore_rank(outputs)
+    outputs = restore_rank(outputs, rank)
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path)
     save_file = os.path.join(args.output_path, 'result.txt')

@@ -8,6 +8,7 @@ import  random
 import  pickle
 from    tqdm import tqdm
 
+
 def get_args():
 
     parser = argparse.ArgumentParser()
@@ -29,37 +30,39 @@ def data_process(filelist, word2index):
         with open(file, 'r', encoding='utf-8') as f:
             data.extend([line.strip('\n').lower().split() \
                          for line in f.readlines()])
+
     def prepare_sequence(seq):
         return list(map(lambda word: word2index[constants.UNK_WORD] 
                         if word2index.get(word) is None else word2index[word], seq))
+
     return [prepare_sequence(seq) for seq in tqdm(data)]
 
 
-def process_invalid_date(source, target_input, target_output, args):
+def process_invalid_date(data, args):
     max_src_position = args.max_src_position
     max_tgt_position = args.max_tgt_position
     discard_invalid_data = getattr(args, 'discard_invalid_data', False)
+    source = data['source']
+    target = data.get('target')
     if max_src_position != inf or max_tgt_position != inf:
         total_len = len(source)
         if discard_invalid_data:
             del_index = []
             for i in range(total_len):
                 if len(source[i]) > max_src_position or \
-                   (target_input and len(target_input[i]) > max_tgt_position):
+                   (target and len(target[i]) > max_tgt_position - 1):
                     del_index.insert(0, i)
             if args.rank == 0:
                 print("===> Discard invalid data: %d" % len(del_index))
             for index in del_index:
                 del source[index]
-                if target_input and target_output:
-                    del target_input[index]
-                    del target_output[index]
+                if target:
+                    del target[index]
         else:
             for i in range(total_len):
                 source[i] = source[i][:max_src_position]
-                if target_input and target_output:
-                    target_input[i] = target_input[i][:max_tgt_position]
-                    target_output[i] = target_output[i][:max_tgt_position]
+                if target:
+                    target[i] = target[i][:max_tgt_position - 1]
 
 
 def sort_data_by_len(source, target_input=None, target_output=None):
@@ -72,15 +75,18 @@ def sort_data_by_len(source, target_input=None, target_output=None):
         return zip(*data)
 
 
-def _get_tokens(source, target_input, target_output, shuffle, args):
-    total_len = len(source)
-    if target_input and target_output:
-        source, target_input, target_output = sort_data_by_len(source=source,
+def get_tokens(data, args):
+    total_len = len(data['source'])
+    if data.get('target'):
+        target_input = [[args.BOS_index] + seq for seq in data['target']]
+        target_output = [seq + [args.EOS_index] for seq in data['target']]
+        source, target_input, target_output = sort_data_by_len(source=data['source'],
                                                                target_input=target_input,
                                                                target_output=target_output)
         rank = None
     else:
-        rank, source = sort_data_by_len(source)
+        rank, source = sort_data_by_len(data['source'])
+    del data
     index_pair = []
     st = 0
     total_len = len(source)
@@ -102,56 +108,60 @@ def _get_tokens(source, target_input, target_output, shuffle, args):
                          LongTensor(pad_batch(target_output[st:ed], args.PAD_index))))
         else:
             data.append(LongTensor(pad_batch(source[st:ed], args.PAD_index)))
-    if shuffle:
-        random.shuffle(data)
     return data, rank
 
 
-class data_loader:
+# class data_loader:
 
-    def __init__(self, source, target=None,
-                 BOS_index=None, EOS_index=None):
-        self.source = source
-        self.target_input = None
-        self.target_output = None
-        self.max_src_len = max(len(seq) for seq in self.source)
-        self.max_tgt_len = None
-        if target:
-            self.target_input = []
-            self.target_output = []
-            for line in target:
-                self.target_input.append([BOS_index] + line)
-                self.target_output.append(line + [EOS_index])
-            self.max_tgt_len = max(len(seq) for seq in self.target_input)
+#     def __init__(self, source, target=None,
+#                  BOS_index=None, EOS_index=None):
+#         self.source = source
+#         self.target_input = None
+#         self.target_output = None
+#         self.max_src_len = max(len(seq) for seq in self.source)
+#         self.max_tgt_len = None
+#             self.target_input = []
+#             self.target_output = []
+#         if target:
+#             for line in target:
+#                 self.target_input.append([BOS_index] + line)
+#                 self.target_output.append(line + [EOS_index])
+#             self.max_tgt_len = max(len(seq) for seq in self.target_input)
 
-    def restore_rank(self, data):
-        rank_data = []
-        rank = [(index, value) for index, value in sorted(list(enumerate(self.rank)), key=lambda x: x[1], reverse=False)]
-        self.rank, _ = zip(*rank)
-        for index in self.rank:
-            rank_data.append(data[index])
-        return rank_data
 
-    def set_param(self, shuffle, args, seed=None):
-        setattr(args, 'max_src_position', min(self.max_src_len, args.max_src_position))
-        setattr(args, 'max_tgt_position', min(self.max_tgt_len, args.max_tgt_position))
-        if args.rank == 0:
-            print("max source sentence length: ", self.max_src_len, "max source position length: ", args.max_src_position)
-            if self.max_tgt_len:
-                print("max target sentence length: ", self.max_tgt_len, "max target position length: ", args.max_tgt_position)
-            if args.position_method == 'Embedding' and \
-               (args.max_src_position > self.max_src_len or args.max_tgt_position > self.max_tgt_len):
-                print("You are using Positional Embedding and max source and target position are set greater than max sentence length, \
-                       the vectors in Positional Embedding that exceed the max sentence length whill not be trained.")
-        self.shuffle = shuffle
-        if seed is not None:
-            random.seed(seed)
-        process_invalid_date(source=self.source,
-                             target_input=self.target_input,
-                             target_output=self.target_output,
-                             args=args)
-        data, self.rank = _get_tokens(self.source, self.target_input, self.target_output, shuffle, args)
-        return data, 1
+def restore_rank(data, rank):
+    rank_data = []
+    rank = [(index, value) for index, value in sorted(list(enumerate(rank)), key=lambda x: x[1], reverse=False)]
+    rank, _ = zip(*rank)
+    for index in rank:
+        rank_data.append(data[index])
+    return rank_data
+
+
+def get_data(args, data=None):
+    if data is None:
+        with open(args.train_file, 'rb') as f:
+            data = pickle.load(f)
+    max_src_len = data['max_src_len']
+    max_tgt_len = data.get('max_tgt_len')
+    setattr(args, 'max_src_position', min(max_src_len, args.max_src_position))
+    if max_tgt_len:
+        setattr(args, 'max_tgt_position', min(max_tgt_len + 1, args.max_tgt_position))
+    if args.rank == 0:
+        print("max source sentence length: ", max_src_len, "max source position length: ", args.max_src_position)
+        if max_tgt_len:
+            print("max target sentence length: ", max_tgt_len, "max target position length: ", args.max_tgt_position)
+        if args.position_method == 'Embedding' and \
+           (args.max_src_position > max_src_len or args.max_tgt_position > max_tgt_len):
+            print("You are using Positional Embedding and max source and target position are set greater than max sentence length, \
+                   the vectors in Positional Embedding that exceed the max sentence length whill not be trained.")
+
+    process_invalid_date(data=data,
+                         args=args)
+    data, rank = get_tokens(data, args)
+    if rank:
+        return data, rank, 1
+    return data, 1
 
 
 def pad_batch(batch, pad_index):
@@ -176,21 +186,19 @@ def preprocess():
     source = data_process(filelist=[args.source],
                           word2index=src_word2index)
 
+    max_src_len = max(len(seq) for seq in source)
+    data = {'source': source,
+            'max_src_len': max_src_len}
+
     if args.target is not None:
         tgt_word2index, _ = load_vocab(args.tgt_vocab)
         target = data_process(filelist=[args.target],
                               word2index=tgt_word2index)
+        max_tgt_len = max(len(seq) for seq in target)
+        data['target'] = target
+        data['max_tgt_len'] = max_tgt_len
 
-    else:
-
-        target = None
-
-    dataloader = data_loader(source=source,
-                             target=target,
-                             BOS_index=constants.BOS_index, 
-                             EOS_index=constants.EOS_index)
-
-    save_data_loader(dataloader, args.save_file)
+    save_data_loader(data, args.save_file)
 
 
 if __name__ == '__main__':

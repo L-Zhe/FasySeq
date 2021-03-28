@@ -46,7 +46,6 @@ def get_train_config(parser):
 
 
 def get_data_config(parser):
-    parser.add_argument('--clip_length', type=int, default=inf)
     parser.add_argument('--discard_invalid_data', action='store_true')
     parser.add_argument('--vocab', type=str, default='./')
     parser.add_argument('--src_vocab', type=str, default='./')

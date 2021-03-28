@@ -308,7 +308,7 @@ class WarmUpOpt:
         return self.factor * (self.d_model**(-0.5) * 
                min(self.step_num**(-0.5), self.step_num * self.warmup_steps**(-1.5)))
 
-    def step(self, parameters):
+    def step(self):
         if self.grad_cnt:
             # if self.clip_grad is not None:
             #     torch.nn.utils.clip_grad_norm_(parameters, self.clip_grad)
@@ -320,10 +320,10 @@ class WarmUpOpt:
     def zero_grad(self):
         self.optimizer.zero_grad()
 
-    def update_optim(self, parameters):
+    def update_optim(self):
         self.grad_cnt += 1
         if self.grad_cnt == self.grad_accumulate:
-            self.step(parameters)
+            self.step()
             self.zero_grad()
             self.grad_cnt = 0
 

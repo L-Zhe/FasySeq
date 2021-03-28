@@ -22,7 +22,6 @@ python train.py --cuda --cuda_num 0 1 2 3 \
                 --batch_print_info 1000 \
                 --grad_accum 2 \
                 --max_tokens 5300 \
-                --clip_length 500 \
                 --discard_invalid_data
 
 

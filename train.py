@@ -6,7 +6,6 @@ from    os import environ
 import  importlib
 import  random
 import  warnings
-from    preprocess import data_loader
 
 warnings.filterwarnings("ignore")
 
@@ -47,7 +46,7 @@ def train():
     show_info(args)
 
     environ['MASTER_ADDR'] = 'localhost'
-    environ['MASTER_PORT'] = '8819'
+    environ['MASTER_PORT'] = '8829'
     mp = importlib.import_module('torch.multiprocessing')
     seed = random.randint(0, 2048)
     setattr(args, 'world_size', len(args.cuda_num))
