@@ -1,5 +1,5 @@
 import  torch
-from    utils.tools import load_vocab, show_info
+from    utils.tools import load_vocab
 from    utils.trainer import trainer
 from    utils.args import get_parser
 from    os import environ
@@ -43,10 +43,9 @@ def train():
         setattr(args, key, value)
 
     set_cuda(cuda=args.cuda, cuda_num=args.cuda_num)
-    show_info(args)
 
     environ['MASTER_ADDR'] = 'localhost'
-    environ['MASTER_PORT'] = '8829'
+    environ['MASTER_PORT'] = '8819'
     mp = importlib.import_module('torch.multiprocessing')
     seed = random.randint(0, 2048)
     setattr(args, 'world_size', len(args.cuda_num))

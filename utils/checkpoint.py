@@ -76,7 +76,7 @@ class checkpoint:
         optim_state_dict = None
         model_config = {}
         start_epoch = 0
-        if self.restore_file is not None and os.path.exists(self.restore_file):
+        if self.restore_file and os.path.exists(self.restore_file):
             print('===> Restore from checkpoint.')
             point = torch.load(self.restore_file, map_location=torch.device('cpu'))
             model_state_dict = process_state_dict(point['model'], 1)

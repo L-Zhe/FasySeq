@@ -20,16 +20,20 @@ def load_vocab(save_path):
     return vocab['word2idx'], vocab['idx2word']
 
 def show_info(args):
-    print('+' * 22)
-    print('EPOCH: \t\t%d' % args.epoch)
-    if args.share_embed:
-        print('Share Embed:\tTrue')
-        print('Vocab Size: \t%d' % args.vocab_size)
-    else:
-        print('SRC Vocab Size: %d' % args.src_vocab_size)
-        print('TGT Vocab Size: %d' % args.tgt_vocab_size)
-    print('USE_CUDA:\t', args.cuda)
-    print("Let's use", torch.cuda.device_count(), "GPUs!")
+    if args.rank == 0:
+        print('+' * 22)
+        print('EPOCH: \t\t%d' % args.epoch)
+        if args.share_embed:
+            print('Share Embed:\tTrue')
+            print('Vocab Size: \t%d' % args.vocab_size)
+            print('max_position: \t%d' % max(args.max_src_position, args.max_tgt_position))
+        else:
+            print('SRC Vocab Size: %d' % args.src_vocab_size)
+            print('TGT Vocab Size: %d' % args.tgt_vocab_size)
+            print('max_src_position: %d' % args.max_src_position)
+            print('max_tgt_position: %d' % args.max_tgt_position)
+        print('USE_CUDA:\t', args.cuda)
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
 
 
 def save2file(data, file):

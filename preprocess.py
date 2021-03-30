@@ -2,9 +2,8 @@ import  argparse
 from    utils import constants
 from    utils.tools import load_vocab
 import  os
-from    math import inf, ceil
+from    math import inf
 from    torch import LongTensor
-import  random
 import  pickle
 from    tqdm import tqdm
 
@@ -77,13 +76,13 @@ def sort_data_by_len(source, target_input=None, target_output=None):
 
 def get_tokens(data, args):
     total_len = len(data['source'])
-    if data.get('target'):
+    train_flag = data.get('target') is not None
+    if train_flag:
         target_input = [[args.BOS_index] + seq for seq in data['target']]
         target_output = [seq + [args.EOS_index] for seq in data['target']]
         source, target_input, target_output = sort_data_by_len(source=data['source'],
                                                                target_input=target_input,
                                                                target_output=target_output)
-        rank = None
     else:
         rank, source = sort_data_by_len(data['source'])
     del data
@@ -91,7 +90,7 @@ def get_tokens(data, args):
     st = 0
     total_len = len(source)
     while st < total_len:
-        if target_input and target_output:
+        if train_flag:
             max_length = max(len(source[st]), len(target_input[st]))
         else:
             max_length = len(source[st])
@@ -102,65 +101,33 @@ def get_tokens(data, args):
         st = ed
     data = []
     for (st, ed) in tqdm(index_pair):
-        if target_input and target_output:
+        if train_flag:
             data.append((LongTensor(pad_batch(source[st:ed], args.PAD_index)),
                          LongTensor(pad_batch(target_input[st:ed], args.PAD_index)),
                          LongTensor(pad_batch(target_output[st:ed], args.PAD_index))))
         else:
-            data.append(LongTensor(pad_batch(source[st:ed], args.PAD_index)))
-    return data, rank
+            data.append((rank[st:ed], LongTensor(pad_batch(source[st:ed], args.PAD_index))))
+    return data
 
 
-# class data_loader:
-
-#     def __init__(self, source, target=None,
-#                  BOS_index=None, EOS_index=None):
-#         self.source = source
-#         self.target_input = None
-#         self.target_output = None
-#         self.max_src_len = max(len(seq) for seq in self.source)
-#         self.max_tgt_len = None
-#             self.target_input = []
-#             self.target_output = []
-#         if target:
-#             for line in target:
-#                 self.target_input.append([BOS_index] + line)
-#                 self.target_output.append(line + [EOS_index])
-#             self.max_tgt_len = max(len(seq) for seq in self.target_input)
-
-
-def restore_rank(data, rank):
-    rank_data = []
-    rank = [(index, value) for index, value in sorted(list(enumerate(rank)), key=lambda x: x[1], reverse=False)]
-    rank, _ = zip(*rank)
-    for index in rank:
-        rank_data.append(data[index])
-    return rank_data
+def restore_rank(data):
+    data.sort(key=lambda x: x[0])
+    return list(zip(*data))[1]
 
 
 def get_data(args, data=None):
     if data is None:
-        with open(args.train_file, 'rb') as f:
+        with open(args.file, 'rb') as f:
             data = pickle.load(f)
     max_src_len = data['max_src_len']
     max_tgt_len = data.get('max_tgt_len')
-    setattr(args, 'max_src_position', min(max_src_len, args.max_src_position))
+    args.max_src_position = min(max_src_len, args.max_src_position)
     if max_tgt_len:
-        setattr(args, 'max_tgt_position', min(max_tgt_len + 1, args.max_tgt_position))
-    if args.rank == 0:
-        print("max source sentence length: ", max_src_len, "max source position length: ", args.max_src_position)
-        if max_tgt_len:
-            print("max target sentence length: ", max_tgt_len, "max target position length: ", args.max_tgt_position)
-        if args.position_method == 'Embedding' and \
-           (args.max_src_position > max_src_len or args.max_tgt_position > max_tgt_len):
-            print("You are using Positional Embedding and max source and target position are set greater than max sentence length, \
-                   the vectors in Positional Embedding that exceed the max sentence length whill not be trained.")
+        args.max_tgt_position = min(max_tgt_len + 1, args.max_tgt_position)
 
     process_invalid_date(data=data,
                          args=args)
-    data, rank = get_tokens(data, args)
-    if rank:
-        return data, rank, 1
+    data = get_tokens(data, args)
     return data, 1
 
 

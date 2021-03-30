@@ -50,7 +50,7 @@ def get_data_config(parser):
     parser.add_argument('--vocab', type=str, default='./')
     parser.add_argument('--src_vocab', type=str, default='./')
     parser.add_argument('--tgt_vocab', type=str, default='./')
-    parser.add_argument('--train_file', type=str)
+    parser.add_argument('--file', type=str)
     parser.add_argument('--valid_file', type=str, default=None)
     parser.add_argument('--valid_ref', type=str, default=None)
     parser.add_argument('--max_tokens', type=int, default=None)

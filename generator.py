@@ -12,7 +12,6 @@ from    utils.eval import Eval
 from    preprocess import data_process, get_data, restore_rank
 import  os
 from    os import environ
-import  pickle
 
 
 class generator:
@@ -34,7 +33,6 @@ class generator:
                 if constants.EOS_index in output[i]:
                     end_index = output[i].index(constants.EOS_index)
                     output[i] = output[i][:end_index]
-                # print(len(output[i]))
 
         except RuntimeError:
             if ed - st == 1:
@@ -52,9 +50,10 @@ class generator:
     @torch.no_grad()
     def __call__(self):
         outputs = []
+        rank = []
         self.model.eval()
         print('===>Start Generate.')
-        for source in tqdm(self.data):
+        for r, source in tqdm(self.data):
 
             if source.dim() == 3:
                 source = source[0]
@@ -63,7 +62,8 @@ class generator:
             del source
             # self.source = self.source.cuda()
             outputs.extend(self._batch(0, self.source.size(0)))
-        return translate2word(outputs, self.index2word)
+            rank.extend(r)
+        return list(zip(rank, translate2word(outputs, self.index2word)))
 
 
 def _main():
@@ -72,13 +72,13 @@ def _main():
     setattr(args, 'PAD_index', constants.PAD_index)
     setattr(args, 'BOS_index', constants.BOS_index)
     setattr(args, 'EOS_index', constants.EOS_index)
+    setattr(args, 'rank', 0)
     assert (args.file is None) ^ (args.raw_file is None)
     if args.cuda:
         environ['CUDA_VISIBLE_DEVICES'] = ','.join(args.cuda_num)
     model_state_dict, model_config = load_model(args.model_path)
     for key, value in model_config.items():
         setattr(args, key, value)
-
     if args.share_embed:
         _, tgt_index2word = load_vocab(args.vocab)
         assert len(tgt_index2word) == args.vocab_size
@@ -94,6 +94,7 @@ def _main():
         else:
             args.max_length = min(args.max_length, args.max_tgt_position)
     model = make_model(args, model_state_dict, 0, False)
+    data = None
     if args.file is None:
         src_word2index, _ = load_vocab(args.src_vocab)
         source = data_process(filelist=[args.raw_file],
@@ -103,8 +104,8 @@ def _main():
         data = {'source': source,
                 'max_src_len': max_src_len}
 
-    dataset, rank, batch_size = get_data(args=args,
-                                         data=data)
+    dataset, batch_size = get_data(args=args,
+                                   data=data)
     if args.file is None:
         del data, source, src_word2index
     dataset = DataLoader(dataset=dataset,
@@ -118,7 +119,7 @@ def _main():
                          model=model)
 
     outputs = generate()
-    outputs = restore_rank(outputs, rank)
+    outputs = restore_rank(outputs)
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path)
     save_file = os.path.join(args.output_path, 'result.txt')

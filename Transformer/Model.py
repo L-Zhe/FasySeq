@@ -32,10 +32,11 @@ class transformer(nn.Module):
         d_qk = d_v = d_model // num_head
         attention = MultiHeadAttention(d_model, d_qk, d_v, num_head)
         FFN = PositionWiseFeedForwardNetworks(d_model, d_model, d_ff)
+        # print(config.max_src_position, config.max_tgt_position)
         if share_embed:
             vocab_size = config.vocab_size
-            self.src_embed = Embedding(vocab_size, 
-                                       d_model, 
+            self.src_embed = Embedding(vocab_size,
+                                       d_model,
                                        dropout=dropout_embed,
                                        padding_idx=PAD_index,
                                        position_method=position_method,

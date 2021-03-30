@@ -4,8 +4,6 @@ from    torch.nn import functional as F
 from    numpy import inf
 import  math
 from    copy import deepcopy
-from    torch.autograd import Variable
-from    torch.nn.utils import clip_grad_norm_
 from    torch import optim
 
 
@@ -42,7 +40,7 @@ class MultiHeadAttention(nn.Module):
     def ScaledDotProductAttention(self, query, keys, values, mask=None):
         score = torch.matmul(query, keys.transpose(-1, -2)) / math.sqrt(self.d_model)
         if mask is not None:
-            score.masked_fill_(mask.unsqueeze(1), -inf)   
+            score.masked_fill_(mask.unsqueeze(1), -inf)
         weight = F.softmax(score, dim=-1)
         return torch.matmul(weight, values)
 
@@ -57,7 +55,7 @@ class MultiHeadAttention(nn.Module):
 
         outputs = self.ScaledDotProductAttention(query, keys, values, mask)
         del query, keys, values
-        outputs = outputs.transpose(1, 2).contiguous().view(batch_size, -1, self.d_v*self.num_head)
+        outputs = outputs.transpose(1, 2).contiguous().view(batch_size, -1, self.d_v * self.num_head)
         return self.W_out(outputs)
 
     def cal_one_vector(self, vector, memory, memory_new, i):
@@ -84,7 +82,7 @@ class MultiHeadAttention(nn.Module):
                 memory_new = torch.cat((memory_new, outputs.unsqueeze(1)), dim=1)
 
         outputs = self.ScaledDotProductAttention(
-                query, 
+                query,
                 memory_new[:, i, ..., 0],
                 memory_new[:, i, ..., 1]
             )

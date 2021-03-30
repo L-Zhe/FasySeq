@@ -28,11 +28,11 @@ python train.py --cuda --cuda_num 0 1 2 3 \
 python generator.py --cuda --cuda_num 4 \
                  --file ./data/sent.pt\
                  --ref_file /home/linzhe/ACL2021/WMT14/newstest2014.tok.bpe.32000.de   \
-                 --max_tokens 3000 \
+                 --max_tokens 5000 \
                  --vocab ./data/vocab/vocab.share \
                  --decode_method beam \
                  --beam 5 \
-                 --model_path ./data/model/checkpoint37.pkl \
+                 --model_path ./data/model/checkpoint13.pkl \
                  --output_path ./data/output.txt \
                  --max_length 500
 
