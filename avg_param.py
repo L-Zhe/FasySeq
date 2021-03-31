@@ -43,7 +43,7 @@ def average_checkpoints(inputs):
     num_models = len(inputs)
 
     for fpath in inputs:
-        state = load_model(fpath)
+        state, model_config = load_model(fpath)
         # Copies over the settings from the first checkpoint
         if new_state is None:
             new_state = state
@@ -77,6 +77,7 @@ def average_checkpoints(inputs):
         else:
             averaged_params[k] //= num_models
     new_state["model"] = averaged_params
+    new_state["model_config"] = model_config
     return new_state
 
 

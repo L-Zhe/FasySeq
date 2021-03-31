@@ -6,6 +6,8 @@ from    os import environ
 import  importlib
 import  random
 import  warnings
+import  socket
+from    contextlib import closing
 
 warnings.filterwarnings("ignore")
 
@@ -22,9 +24,9 @@ def get_vocab_info(args, share_embed):
         src_vocab_size = len(src_word2index)
         tgt_vocab_size = len(tgt_index2word)
         vocab_size = 0
-    return {"src_vocab_size": src_vocab_size,
-            "tgt_vocab_size": tgt_vocab_size,
-            "vocab_size": vocab_size}
+    setattr(args, 'vocab_size', vocab_size)
+    setattr(args, 'src_vocab_size', src_vocab_size)
+    setattr(args, 'tgt_vocab_size', tgt_vocab_size)
 
 
 def set_cuda(cuda, cuda_num):
@@ -34,18 +36,23 @@ def set_cuda(cuda, cuda_num):
         environ['CUDA_VISIBLE_DEVICES'] = ''
 
 
+def get_free_port():
+    """ Get free port"""
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s: 
+        s.bind(('', 0)) 
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+        return str(s.getsockname()[1])
+
+
 def train():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
     args = get_parser()
-    for key, value in get_vocab_info(args=args,
-                                     share_embed=args.share_embed).items():
-        setattr(args, key, value)
-
+    get_vocab_info(args=args, share_embed=args.share_embed)
     set_cuda(cuda=args.cuda, cuda_num=args.cuda_num)
 
     environ['MASTER_ADDR'] = 'localhost'
-    environ['MASTER_PORT'] = '8819'
+    environ['MASTER_PORT'] = get_free_port()
     mp = importlib.import_module('torch.multiprocessing')
     seed = random.randint(0, 2048)
     setattr(args, 'world_size', len(args.cuda_num))

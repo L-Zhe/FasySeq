@@ -2,17 +2,17 @@ from    .checkpoint import checkpoint
 from    .makeModel import make_model
 from    .run import fit
 from    . import constants
+from    .tools import show_info
 from    torch.utils.data import DataLoader, distributed
 import  torch.distributed as dist
 import  torch
 from    Transformer.Module import WarmUpOpt, LabelSmoothing
 from    preprocess import get_data
-from    utils.tool import show_info
 
 
 def get_checkpoint(args):
     if args.rank == 0:
-        print("===>Get Checkpoint...")
+        print("===> Get Checkpoint...")
     check_point = checkpoint(save_path=args.checkpoint_path,
                              checkpoint_num=args.checkpoint_num,
                              restore_file=args.restore_file)
@@ -24,10 +24,17 @@ def get_checkpoint(args):
     for key, value in model_config.items():
         setattr(args, key, value)
     dist.barrier()
+    if args.rank == 0:
+        if model_state_dict is None:
+            print("===> Load Checkpoint Failed. Training will start from scratch...")
+        else:
+            print("===> Load Checkpoint Successfully...")
     return model_state_dict, optim_state_dict, start_epoch
 
 
 def get_dataloader(args, seed):
+    if args.rank == 0:
+        print("===> Get Dataloader...")
     train_dataset, batch_size = get_data(args=args)
     train_sampler = distributed.DistributedSampler(train_dataset,
                                                    shuffle=True,
@@ -47,7 +54,7 @@ def get_dataloader(args, seed):
 
 def get_model(args, model_state_dict, optim_state_dict):
     if args.rank == 0:
-        print("==>Build Model...")
+        print("==> Build Model...")
     args.checkpoint.add_params(args)
     criterion = LabelSmoothing(smoothing=args.smoothing,
                                ignore_index=constants.PAD_index).cuda(args.rank)
@@ -73,8 +80,10 @@ def trainer(gpu, args, seed):
     setattr(args, 'PAD_index', constants.PAD_index)
     model_state_dict, optim_state_dict, start_epoch = get_checkpoint(args)
     get_dataloader(args, seed)
+    if args.rank == 0:
+        print(args)
     get_model(args, model_state_dict, optim_state_dict)
     del model_state_dict, optim_state_dict
     show_info(args)
-    fit(args=args, 
+    fit(args=args,
         start_epoch=start_epoch)

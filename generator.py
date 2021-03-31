@@ -23,16 +23,18 @@ class generator:
 
     def _batch(self, st, ed):
         try:
-            max_src_len = (self.source[st:ed] != constants.PAD_index).sum(dim=-1).max().item()
+            length = (self.source[st:ed] != constants.PAD_index).sum(dim=-1)
+            max_src_len = length.max().item()
+            max_length = min(max_src_len * 1.5, self.max_length)
             output = self.model(source=self.source[st:ed, :max_src_len].cuda(),
                                 mode='test',
-                                max_length=self.max_length)
+                                max_length=1.5 * max_length)
             output = output.tolist()
             for i in range(len(output)):
                 output[i] = output[i][1:]
                 if constants.EOS_index in output[i]:
                     end_index = output[i].index(constants.EOS_index)
-                    output[i] = output[i][:end_index]
+                    output[i] = output[i][:min(int(1.5 * length[i]), end_index)]
 
         except RuntimeError:
             if ed - st == 1:
@@ -45,6 +47,7 @@ class generator:
                 _ed = min(st + length, ed)
                 output.extend(self._batch(st, _ed))
                 st = _ed
+
         return output
 
     @torch.no_grad()
@@ -60,7 +63,6 @@ class generator:
             max_src_len = (source != constants.PAD_index).sum(dim=-1).max().item()
             self.source = source[:, :max_src_len]
             del source
-            # self.source = self.source.cuda()
             outputs.extend(self._batch(0, self.source.size(0)))
             rank.extend(r)
         return list(zip(rank, translate2word(outputs, self.index2word)))
@@ -79,6 +81,9 @@ def _main():
     model_state_dict, model_config = load_model(args.model_path)
     for key, value in model_config.items():
         setattr(args, key, value)
+    import pprint
+    pp = pprint.PrettyPrinter(width=41, compact=True)
+    pp.pprint(args)
     if args.share_embed:
         _, tgt_index2word = load_vocab(args.vocab)
         assert len(tgt_index2word) == args.vocab_size
@@ -96,7 +101,11 @@ def _main():
     model = make_model(args, model_state_dict, 0, False)
     data = None
     if args.file is None:
-        src_word2index, _ = load_vocab(args.src_vocab)
+        if args.share_embed:
+            src_word2index, _ = load_vocab(args.vocab)
+        else:
+            src_word2index, _ = load_vocab(args.src_vocab)
+
         source = data_process(filelist=[args.raw_file],
                               word2index=src_word2index)
         max_src_len = max(len(seq) for seq in source)
