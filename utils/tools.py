@@ -1,6 +1,11 @@
 import  os
 import  pickle
 import  torch
+import  socket
+import  torch.distributed as dist
+from    torch import FloatTensor
+from    contextlib import closing
+
 
 def save_vocab(word2index, index2word, save_path):
     vocab = {'word2idx':  word2index,
@@ -48,3 +53,32 @@ def save2file(data, file):
                 f.write('\n')
             flag = True
             f.write(line)
+
+
+def get_free_port():
+    """ Get free port"""
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s: 
+        s.bind(('', 0)) 
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+        return str(s.getsockname()[1])
+
+
+def sync_between_gpu(val):
+    val = FloatTensor([val]).cuda(non_blocking=True)
+    dist.all_reduce(val, op=dist.ReduceOp.SUM)
+    return val.item()
+
+
+def move2cuda(data):
+    if data.dim() >= 3:
+        data = data[0]
+    return data.cuda(non_blocking=True)
+
+
+def triu_mask(length):
+    mask = torch.ones(length, length).triu(1)
+    return mask.unsqueeze(0) == 1
+
+
+def pad_mask(input, PAD):
+    return (input == PAD).unsqueeze(1)

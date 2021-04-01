@@ -1,27 +1,12 @@
 import  torch
-from    torch import FloatTensor
 import  time
-import  torch.distributed as dist
 import  functools
-
-
-def sync_between_gpu(val):
-    val = FloatTensor([val]).cuda(non_blocking=True)
-    dist.all_reduce(val, op=dist.ReduceOp.SUM)
-    return val.item()
-
-
-def move2cuda(data):
-    if data.dim() == 3:
-        data = data[0]
-    # max_len = (data != PAD_index).sum(dim=-1).max().item()
-    # data = data[:, :max_len]
-    return data.cuda(non_blocking=True)
+from    .tools import sync_between_gpu, move2cuda
 
 
 def print_info(func):
     @functools.wraps(func)
-    def wrapper(model, criterion, source, target_input, target_output,
+    def wrapper(model, criterion, source, target_input, target_output, src_mask,
                 info, batch, PAD_index, print_flag, rank, world_size):
         total_tok = info['total_tok']
         cnt = info['cnt']
@@ -34,6 +19,7 @@ def print_info(func):
         loss = func(source=source,
                     target_input=target_input,
                     target_output=target_output,
+                    src_mask=src_mask,
                     model=model,
                     criterion=criterion)
         total_loss += loss * batch_size
@@ -45,7 +31,7 @@ def print_info(func):
             total_time = time.time() - st_time
             st_time = time.time()
             if rank == 0:
-                print(f'Batch: {batch}\tloss: {round(total_loss / cnt, 6)}\t\
+                print(f'Batch: {batch}\tloss: {round(total_loss / cnt, 5)}\t\
                         Tok pre Sec: {int(total_tok / total_time)}\t\tTime: {int(total_time)}')
             total_loss = 0
             cnt = 0
@@ -60,18 +46,14 @@ def print_info(func):
 
 @print_info
 def step(source, target_input, target_output,
-         model, criterion):
-    source = move2cuda(source)
-    target_input = move2cuda(target_input)
+         src_mask, model, criterion):
     output = model(mode='train',
                    source=source,
-                   target=target_input)
-    del source, target_input
-    target_output = move2cuda(target_output)
-    loss = criterion(output, target_output)
+                   target=target_input,
+                   src_mask=src_mask)
+    loss = criterion(output, move2cuda(target_output))
     step_loss = loss.item()
     loss.backward()
-    del loss, target_output
     return step_loss
 
 
@@ -83,12 +65,13 @@ def run(model, optimizer, criterion, rank, world_size,
             'total_tok': 0,
             'st_time': time.time()}
     optimizer.zero_grad()
-    for i, (source, target_input, target_output) in enumerate(train_data):
+    for i, (source, target_input, target_output, src_mask) in enumerate(train_data):
         info = step(model=model,
                     criterion=criterion,
                     source=source,
                     target_input=target_input,
                     target_output=target_output,
+                    src_mask=src_mask,
                     info=info,
                     batch=i,
                     PAD_index=PAD_index,

@@ -7,15 +7,6 @@ from    copy import deepcopy
 from    torch import optim
 
 
-def pad_mask(input, PAD):
-    return (input == PAD).unsqueeze(1)
-
-
-def triu_mask(length):
-    mask = torch.ones(length, length).triu(1)
-    return mask.unsqueeze(0) == 1
-
-
 def Linear(in_features, out_features, bias=True):
     m = nn.Linear(in_features, out_features, bias)
     nn.init.xavier_uniform_(m.weight)

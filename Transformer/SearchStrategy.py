@@ -1,5 +1,4 @@
 import  torch
-from    .Module import triu_mask
 from    math import inf
 from    torch.nn import functional as F
 
@@ -22,7 +21,7 @@ class SearchMethod:
             return self.beam_search(*args, **kwargs)
 
     @torch.no_grad()
-    def greedy_search(self, decoder, tgt_embed, src_pad_mask, 
+    def greedy_search(self, decoder, tgt_embed, src_mask, 
                       encoder_output, max_length):
         batch_size = encoder_output.size(0)
         device = encoder_output.device
@@ -37,7 +36,7 @@ class SearchMethod:
             embed, memory = decoder(
                 embed,
                 encoder_output,
-                src_pad_mask,
+                src_mask,
                 memory
             )
             prob = embed[:, -1:, :]
@@ -56,7 +55,7 @@ class SearchMethod:
         else:
             return sentence
 
-    # def beam_search(self, decoder, tgt_embed, src_pad_mask, 
+    # def beam_search(self, decoder, tgt_embed, src_mask, 
     #                 encoder_output, max_length):
 
     #     batch_size = encoder_output.size(0)
@@ -68,7 +67,7 @@ class SearchMethod:
     #     seq_mask = triu_mask(1).to(device)
     #     embed = decoder(embed, 
     #                     encoder_output, 
-    #                     src_pad_mask, 
+    #                     src_mask, 
     #                     seq_mask)
     #     prob = F.log_softmax(embed[:, -1, :], dim=-1)
     #     bos_mask = torch.BoolTensor(1, prob.size(-1)).cuda().fill_(False)
@@ -83,8 +82,8 @@ class SearchMethod:
     #     # generate other word
     #     encoder_output = encoder_output.unsqueeze(1).repeat(1, self.beam, 1, 1)
     #     encoder_output = encoder_output.view(batch_size * self.beam, srcLen, -1)
-    #     src_pad_mask = src_pad_mask.unsqueeze(1).repeat(1, self.beam, 1, 1)
-    #     src_pad_mask = src_pad_mask.view(batch_size * self.beam, 1, -1)
+    #     src_mask = src_mask.unsqueeze(1).repeat(1, self.beam, 1, 1)
+    #     src_mask = src_mask.view(batch_size * self.beam, 1, -1)
 
     #     i = 1
     #     while i < max_length:
@@ -94,7 +93,7 @@ class SearchMethod:
     #         seq_mask = triu_mask(i + 1).to(device)
     #         embed = decoder(embed, 
     #                         encoder_output, 
-    #                         src_pad_mask, 
+    #                         src_mask, 
     #                         seq_mask)
     #         prob = F.log_softmax(embed[:, -1, :], dim=-1)
     #         flatten_eos_index = eos_flag.view(batch_size * self.beam, 1)
@@ -131,7 +130,7 @@ class SearchMethod:
     #     return output
 
     @torch.no_grad()
-    def beam_search(self, decoder, tgt_embed, src_pad_mask, 
+    def beam_search(self, decoder, tgt_embed, src_mask, 
                     encoder_output, max_length):
 
         batch_size = encoder_output.size(0)
@@ -143,7 +142,7 @@ class SearchMethod:
         # seq_mask = triu_mask(1).to(device)
         embed, memory = decoder(embed, 
                                 encoder_output, 
-                                src_pad_mask)
+                                src_mask)
         prob = F.log_softmax(embed[:, -1, :], dim=-1)
         vocab_size = prob.size(-1)
         bos_mask = torch.BoolTensor(1, prob.size(-1)).cuda().fill_(False)
@@ -162,8 +161,8 @@ class SearchMethod:
                        .view(batch_size * self.beam, num_layers, num_heads, 1, dimension, 2)
         encoder_output = encoder_output.unsqueeze(1).repeat(1, self.beam, 1, 1)
         encoder_output = encoder_output.view(batch_size * self.beam, srcLen, -1)
-        src_pad_mask = src_pad_mask.unsqueeze(1).repeat(1, self.beam, 1, 1)
-        src_pad_mask = src_pad_mask.view(batch_size * self.beam, 1, -1)
+        src_mask = src_mask.unsqueeze(1).repeat(1, self.beam, 1, 1)
+        src_mask = src_mask.view(batch_size * self.beam, 1, -1)
 
         i = 1
         while i < max_length:
@@ -171,7 +170,7 @@ class SearchMethod:
 
             embed, memory = decoder(embed, 
                                     encoder_output, 
-                                    src_pad_mask,
+                                    src_mask,
                                     memory)
             prob = F.log_softmax(embed[:, 0, :], dim=-1)
             flatten_eos_index = eos_flag.view(batch_size * self.beam, 1)

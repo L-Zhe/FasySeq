@@ -8,7 +8,7 @@ from    utils.tools import save_vocab
 def create_vocab(file_list, vocab_num):
     def create_corpus(file):
         with open(file, 'r') as f:
-            corpus = [word.lower() for line in f.readlines() for word in line.strip('\n').split()]
+            corpus = [line.strip('\n').lower() for line in f.readlines()]
         return corpus
     corpus = []
     for file in file_list:

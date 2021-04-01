@@ -73,6 +73,8 @@ def get_generate_config():
     parser.add_argument('--ref_file', type=str, default=None)
     parser.add_argument('--batch_size', type=int, default=None)
     parser.add_argument('--max_length', type=int, default=inf)
+    parser.add_argument('--max_alpha', type=float, default=inf)
+    parser.add_argument('--max_add_token', type=int, default=inf)
     parser.add_argument('--max_tokens', type=int, default=None)
     parser.add_argument('--src_vocab', type=str, default=None)
     parser.add_argument('--tgt_vocab', type=str, default=None)

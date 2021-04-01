@@ -6,6 +6,8 @@ from    math import inf
 from    torch import LongTensor
 import  pickle
 from    tqdm import tqdm
+from    utils.tools import pad_mask
+
 
 
 def get_args():
@@ -101,12 +103,14 @@ def get_tokens(data, args):
         st = ed
     data = []
     for (st, ed) in tqdm(index_pair):
+        src = LongTensor(pad_batch(source[st:ed], args.PAD_index))
+        src_mask = pad_mask(src, args.PAD_index)
         if train_flag:
-            data.append((LongTensor(pad_batch(source[st:ed], args.PAD_index)),
-                         LongTensor(pad_batch(target_input[st:ed], args.PAD_index)),
-                         LongTensor(pad_batch(target_output[st:ed], args.PAD_index))))
+            tgt_input = LongTensor(pad_batch(target_input[st:ed], args.PAD_index))
+            tgt_output = LongTensor(pad_batch(target_output[st:ed], args.PAD_index))
+            data.append((src, tgt_input, tgt_output, src_mask))
         else:
-            data.append((rank[st:ed], LongTensor(pad_batch(source[st:ed], args.PAD_index))))
+            data.append((rank[st:ed], src, src_mask))
     return data
 
 

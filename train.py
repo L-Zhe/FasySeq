@@ -6,8 +6,7 @@ from    os import environ
 import  importlib
 import  random
 import  warnings
-import  socket
-from    contextlib import closing
+from    utils.tools import get_free_port
 
 warnings.filterwarnings("ignore")
 
@@ -34,14 +33,6 @@ def set_cuda(cuda, cuda_num):
         environ['CUDA_VISIBLE_DEVICES'] = ','.join(cuda_num)
     else:
         environ['CUDA_VISIBLE_DEVICES'] = ''
-
-
-def get_free_port():
-    """ Get free port"""
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s: 
-        s.bind(('', 0)) 
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-        return str(s.getsockname()[1])
 
 
 def train():
