@@ -17,17 +17,17 @@ python train.py --cuda --cuda_num 0 1 2 3 \
                 --share_embed \
                 --vocab ./data/vocab/vocab.share \
                 --file ./data/data.de2en\
-                --checkpoint_path ./data/model \
-                --restore_file ./data/model/checkpoint21.pkl\
+                --checkpoint_path ./data/model_de2en \
+                --restore_file ./data/model_de2en/checkpoint21.pkl\
                 --batch_print_info 1000 \
                 --grad_accum 2 \
-                --max_tokens 6500 \
+                --max_tokens 5300 \
                 --discard_invalid_data
 
 
-python generator.py --cuda --cuda_num 4 \
-                 --raw_file /home/linzhe/ACL2021/WMT14/bpe/newstest2014.tok.bpe.32000.en \
-                 --ref_file /home/linzhe/ACL2021/WMT14/newstest2014.tok.bpe.32000.de   \
+python generator.py --cuda --cuda_num 3 \
+                 --raw_file /home/linz/ACL2021/WMT14/bpe/newstest2014.tok.bpe.32000.de \
+                 --ref_file /home/linz/ACL2021/WMT14/newstest2014.tok.bpe.32000.en  \
                  --max_tokens 5000 \
                  --vocab ./data/vocab/vocab.share \
                  --decode_method beam \
@@ -74,4 +74,11 @@ python avg_param.py --input ./data/model/checkpoint110.pkl \
                             ./data/model/checkpoint107.pkl \
                             ./data/model/checkpoint108.pkl \
                             ./data/model/checkpoint109.pkl \
+                    --output data/model/checkpoint.pkl
+
+python avg_param.py --input ./data/model/checkpoint96.pkl \
+                            ./data/model/checkpoint97.pkl \
+                            ./data/model/checkpoint98.pkl \
+                            ./data/model/checkpoint99.pkl \
+                            ./data/model/checkpoint100.pkl \
                     --output data/model/checkpoint.pkl

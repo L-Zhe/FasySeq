@@ -57,7 +57,7 @@ def get_model(args, model_state_dict, optim_state_dict):
         print("==> Build Model...")
     args.checkpoint.add_params(args)
     criterion = LabelSmoothing(smoothing=args.smoothing,
-                               ignore_index=constants.PAD_index).cuda(args.rank)
+                               ignore_index=constants.PAD_index)
     setattr(args, 'criterion', criterion)
     model = make_model(args, model_state_dict, args.rank)
     optimizer = WarmUpOpt(parameters=model.parameters(),

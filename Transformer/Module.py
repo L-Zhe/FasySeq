@@ -72,11 +72,9 @@ class MultiHeadAttention(nn.Module):
             else:
                 memory_new = torch.cat((memory_new, outputs.unsqueeze(1)), dim=1)
 
-        outputs = self.ScaledDotProductAttention(
-                query,
-                memory_new[:, i, ..., 0],
-                memory_new[:, i, ..., 1]
-            )
+        outputs = self.ScaledDotProductAttention(query,
+                                                 memory_new[:, i, ..., 0],
+                                                 memory_new[:, i, ..., 1])
         outputs = outputs.transpose(1, 2).contiguous().view(batch_size, -1, self.d_v * self.num_head)
         return self.W_out(outputs), memory_new
 
@@ -249,14 +247,14 @@ class Decoder(nn.Module):
         return self.project(embed), memory_new
 
 
-class LabelSmoothing(nn.Module):
+class LabelSmoothing:
 
     def __init__(self, smoothing=0., ignore_index=None):
-        super().__init__()
+
         self.smoothing = smoothing
         self.ignore_index = ignore_index
 
-    def forward(self, input, target):
+    def __call__(self, input, target):
         input = F.log_softmax(input, dim=-1)
         vocab_size = input.size(-1)
         batch_size = input.size(0)
