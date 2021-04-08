@@ -4,14 +4,28 @@
 
 FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. It aims to provide a seq2seq model to researchers and developers, which can be trained efficiently and modified easily. This toolkit is based on Transformer(), and will add more seq2seq models in the future.
 
+## Dependency
+
+```
+PyTorch >= 1.4
+NLTK
+```
+
+## Result
+
+...
+
+## Structute
+
+...
+
 ## Preprocess
 
 ### Build Vocabulary
 
-
 ``createVocab.py``
 
-| Named Arguments | Description                                  |
+| NamedArguments | Description                                  |
 | :------------------------------------------------ | :------------------------------------------------------------ |
 | -f/--file                       | The files used to build the vocabulary.<br />``Type: List``  |
 | --vocab_num                     | The maximum size of vocabulary, the excess word will be discard according to the frequency.<br />``Type: Int``  ``Default: -1`` |
@@ -23,19 +37,19 @@ FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. I
 
 ``preprocess.py``
 
-| Named Arguments | Description                                             |
-| :-------------- | ------------------------------------------------------- |
-| --source        | The path of source file.<br />``Type: str``             |
-| [--target]      | The path of target file.<br />``Type: str``             |
-| --src_vocab     | The path of source vocabulary.<br />``Type: str``       |
-| [--tgt_vocab]   | The path of target vocabulary.<br />``Type: str``       |
-| --save_path     | The path to save the processed data.<br />``Type: str`` |
+| NamedArguments | Description                                             |
+| :------------- | ------------------------------------------------------- |
+| --source       | The path of source file.<br />``Type: str``             |
+| [--target]     | The path of target file.<br />``Type: str``             |
+| --src_vocab    | The path of source vocabulary.<br />``Type: str``       |
+| [--tgt_vocab]  | The path of target vocabulary.<br />``Type: str``       |
+| --save_path    | The path to save the processed data.<br />``Type: str`` |
 
 ## Train
 
 ``train.py``
 
-| Named Arguments      | Description |
+| NamedArguments | Description |
 | :------------------- | ----------- |
 | **Model**            | -           |
 | --share_embed       | Source and target share the same vocabulary and word embedding. The max position of embedding is max(max_src_position, max_tgt_position) if the model employ share embedding. |
@@ -53,8 +67,9 @@ FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. I
 | --tgt_vocab | Target vocabulary path.<br />``Type: str`` ``Default: None`` |
 | --file | The training data file.<br />``Type: str`` |
 | --max_tokens | The maximum tokens in each batch.<br />``Type: Int`` ``Default: 1000`` |
+| --discard_invalid_data | The data which length of source or data is more than maximum position will be discard if use this option, otherwise the long sentences will be cut into max position. |
 | **Train**  | - |
-| --cuda_num           | The device's ID of GPU which used to train the model.<br />``Type: List`` |
+| --cuda_num           | The device's ID of GPU.<br />``Type: List`` |
 | --grad_accumulate    | The num of gradient accumulate.<br />``Type: Int`` ``Default: 1`` |
 | --epoch | The total epoch to train.<br />``Type: Int``  ``Default: inf`` |
 | --batch_print_info | The number of batch to print training information.<br />``Type: Int`` ``Default: 1000`` |
@@ -63,25 +78,24 @@ FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. I
 
 ``generator.py``
 
-| Named Arguments                                    | Description |
-| -------------------------------------------------- | ----------- |
-| --cuda_num                                         |             |
-| --file                                             |             |
-| --raw_file                                         |             |
-| --ref_file                                         |             |
-| --max_length<br />--max_alpha<br />--max_add_token |             |
-| --max_tokens                                       |             |
-| --src_vocab                                        |             |
-| --tgt_vocab                                        |             |
-| --vocab                                            |             |
-| --model_path                                       |             |
-| --output_path                                      |             |
-| --decode_method                                    |             |
-| --beam                                             |             |
+| NamedArguments                                     | Description                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| --cuda_num                                         | The device's ID of GPU.<br />``Type: List``                  |
+| --file                                             | The inference data file which has been processed.<br />``Type: str`` |
+| --raw_file                                         | The raw inference data file, and will be preprocessed before generated.<br />``Type: str`` |
+| --ref_file                                         | The reference file.<br />``Type: str``                       |
+| --max_length<br />--max_alpha<br />--max_add_token | Maximum generated length = max(max_length, max_alpha * max_src_len, max_add_token + max_src_token)<br />``Type: Int`` ``Default: inf`` |
+| --max_tokens                                       | The maximum tokens in each batch.<br />``Type: Int`` ``Default: 1000`` |
+| --src_vocab                                        | Source vocabulary path.<br />``Type: str`` ``Default: None`` |
+| --tgt_vocab                                        | Target vocabulary path.<br />``Type: str`` ``Default: None`` |
+| --vocab                                            | Vocabulary path. If you use share embedding, the vocabulary will be loaded from this path.<br />``Type: str`` ``Default: None`` |
+| --model_path                                       | The path of pre-trained model.<br />``Type: str``            |
+| --output_path                                      | The path of output. the result will be saved into ``output_path/result.txt``.<br />``Type: str`` |
+| --decode_method                                    | The decode method.<br />``Option:greedy/beam``               |
+| --beam                                             | Beam size.<br />``Type: Int`` ``Default: 5``                 |
 
 
 
 ## Postpreposs
 
 ``avg_param.py``
-

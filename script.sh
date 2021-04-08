@@ -1,6 +1,6 @@
 python createVocab.py --file /home/linz/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.en \
                              /home/linz/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.de \
-                      --save_path ./data/vocab/vocab.share
+                      --lower --save_path ./data/vocab/vocab.share
 
 python preprocess.py --source /home/linzhe/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.de \
                      --target /home/linzhe/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.en \
@@ -13,7 +13,7 @@ python preprocess.py --source /home/linzhe/ACL2021/WMT14/bpe/newstest2014.tok.bp
                      --save_file ./data/sent.pt
 
 
-python train.py --cuda --cuda_num 0 1 2 3 \
+python train.py --cuda_num 0 1 2 3 \
                 --share_embed \
                 --vocab ./data/vocab/vocab.share \
                 --file ./data/data.de2en\
@@ -25,7 +25,7 @@ python train.py --cuda --cuda_num 0 1 2 3 \
                 --discard_invalid_data
 
 
-python generator.py --cuda --cuda_num 3 \
+python generator.py --cuda_num 3 \
                  --raw_file /home/linz/ACL2021/WMT14/bpe/newstest2014.tok.bpe.32000.de \
                  --ref_file /home/linz/ACL2021/WMT14/newstest2014.tok.bpe.32000.en  \
                  --max_tokens 5000 \
