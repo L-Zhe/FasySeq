@@ -29,10 +29,7 @@ def get_vocab_info(args, share_embed):
 
 
 def set_cuda(cuda, cuda_num):
-    if cuda:
-        environ['CUDA_VISIBLE_DEVICES'] = ','.join(cuda_num)
-    else:
-        environ['CUDA_VISIBLE_DEVICES'] = ''
+    environ['CUDA_VISIBLE_DEVICES'] = ','.join(cuda_num)
 
 
 def train():

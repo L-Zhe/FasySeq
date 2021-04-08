@@ -37,8 +37,6 @@ def get_model_config(parser):
 
 def get_train_config(parser):
     parser.add_argument('--epoch', type=int, default=100)
-    parser.add_argument('--batch_size', type=int, default=None)
-    parser.add_argument('--cuda', action='store_true')
     parser.add_argument('--cuda_num', type=str, default='0', nargs='+')
     parser.add_argument('--batch_print_info', type=int, default=500)
     parser.add_argument('--grad_accumulate', type=int, default=1)
@@ -51,27 +49,21 @@ def get_data_config(parser):
     parser.add_argument('--src_vocab', type=str, default='./')
     parser.add_argument('--tgt_vocab', type=str, default='./')
     parser.add_argument('--file', type=str)
-    parser.add_argument('--valid_file', type=str, default=None)
-    parser.add_argument('--valid_ref', type=str, default=None)
     parser.add_argument('--max_tokens', type=int, default=None)
-    parser.add_argument('--source_file', type=str, default=None)
 
 
 def get_checkpoint_config(parser):
     parser.add_argument('--checkpoint_path', type=str, default=None)
     parser.add_argument('--restore_file', type=str, default=None)
     parser.add_argument('--checkpoint_num', type=int, default=inf)
-    parser.add_argument('--checkpoint_step', type=int, default=1000)
     
 
 def get_generate_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cuda', action='store_true')
     parser.add_argument('--cuda_num', type=str, default='0', nargs='+')
     parser.add_argument('--file', type=str, default=None)
     parser.add_argument('--raw_file', type=str, default=None)
     parser.add_argument('--ref_file', type=str, default=None)
-    parser.add_argument('--batch_size', type=int, default=None)
     parser.add_argument('--max_length', type=int, default=inf)
     parser.add_argument('--max_alpha', type=float, default=inf)
     parser.add_argument('--max_add_token', type=int, default=inf)
