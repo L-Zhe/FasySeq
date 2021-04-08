@@ -91,7 +91,7 @@ NLTK
 | --file                                             | The inference data file which has been processed.<br />``Type: str`` |
 | --raw_file                                         | The raw inference data file, and will be preprocessed before generated.<br />``Type: str`` |
 | --ref_file                                         | The reference file.<br />``Type: str``                       |
-| --max_length<br />--max_alpha<br />--max_add_token | Maximum generated length = max(max_length, max_alpha * max_src_len, max_add_token + max_src_token)<br />``Type: Int`` ``Default: inf`` |
+| --max_length<br />--max_alpha<br />--max_add_token | Maximum generated length = min(max_length, max_alpha * max_src_len, max_add_token + max_src_token)<br />``Type: Int`` ``Default: inf`` |
 | --max_tokens                                       | The maximum tokens in each batch.<br />``Type: Int`` ``Default: 1000`` |
 | --src_vocab                                        | Source vocabulary path.<br />``Type: str`` ``Default: None`` |
 | --tgt_vocab                                        | Target vocabulary path.<br />``Type: str`` ``Default: None`` |
