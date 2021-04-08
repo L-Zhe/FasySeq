@@ -15,7 +15,7 @@ NLTK
 
 ...
 
-## Structute
+## Structure
 
 ...
 
