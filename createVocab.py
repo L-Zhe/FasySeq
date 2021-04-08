@@ -5,10 +5,13 @@ from    math import inf
 from    utils.tools import save_vocab
 
 
-def create_vocab(file_list, vocab_num):
+def create_vocab(file_list, vocab_num, min_freq, lower):
     def create_corpus(file):
         with open(file, 'r') as f:
-            corpus = [line.strip('\n').lower() for line in f.readlines()]
+            if lower:
+                corpus = [line.strip('\n').lower() for line in f.readlines()]
+            else:
+                corpus = [line.strip('\n') for line in f.readlines()]
         return corpus
     corpus = []
     for file in file_list:
@@ -26,7 +29,7 @@ def create_vocab(file_list, vocab_num):
     index2word[constants.EOS_index] = constants.EOS_WORD
     
     if vocab_num != -1:
-        w_count = [pair[0] for pair in Counter(corpus).most_common(vocab_num)]
+        w_count = [pair[0] for pair in Counter(corpus).most_common(vocab_num) if pair[1] >= min_freq]
     else:
         w_count = set(corpus)
     for word in w_count:
@@ -43,14 +46,18 @@ def main_vocab():
                         help='File list to generate vocabulary.')
     parser.add_argument('--vocab_num', type=int, nargs='?', default=-1, 
                         help='Total number of word in vocabulary.')
+    parser.add_argument('--min_freq', typr=int, default=0)
+    parser.add_argument('--lower', action='store_true')
     parser.add_argument('--save_path', type=str, default='./',
                         help='Path to save vocab.')
                                                 
     args = parser.parse_args()
     word2index, index2word = create_vocab(file_list=args.file,
-                                          vocab_num=args.vocab_num)
+                                          vocab_num=args.vocab_num
+                                          min_freq=args.min_freq,
+                                          lower=args.lower)
     print('Vocabulary Number: %d' % len(word2index))
-    save_vocab(word2index, index2word, args.save_path)
+    save_vocab(word2index, index2word, args.lower, args.save_path)
 
 
 if __name__ == '__main__':

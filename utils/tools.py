@@ -7,9 +7,10 @@ from    torch import FloatTensor
 from    contextlib import closing
 
 
-def save_vocab(word2index, index2word, save_path):
+def save_vocab(word2index, index2word, lower, save_path):
     vocab = {'word2idx':  word2index,
-             'idx2word':  index2word}
+             'idx2word':  index2word,
+             'lower':     lower}
     
     file_path = os.path.join(*os.path.split(save_path)[:-1])
     if os.path.exists(file_path) == False:
@@ -22,7 +23,7 @@ def save_vocab(word2index, index2word, save_path):
 def load_vocab(save_path):
     with open(save_path, 'rb') as f:
         vocab = pickle.load(f)
-    return vocab['word2idx'], vocab['idx2word']
+    return vocab['word2idx'], vocab['idx2word'], vocab['lower']
 
 def show_info(args):
     if args.rank == 0:

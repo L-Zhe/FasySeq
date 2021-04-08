@@ -22,15 +22,19 @@ def get_args():
     return parser.parse_args()
 
 
-def data_process(filelist, word2index):
+def data_process(filelist, word2index, lower):
     '''
     Change word to index. 
     '''
     data = []
     for file in filelist:
         with open(file, 'r', encoding='utf-8') as f:
-            data.extend([line.strip('\n').lower().split() \
-                         for line in f.readlines()])
+            if lower:
+                data.extend([line.strip('\n').lower().split() \
+                             for line in f.readlines()])
+            else:
+                data.extend([line.strip('\n').split() \
+                             for line in f.readlines()]) 
 
     def prepare_sequence(seq):
         return list(map(lambda word: word2index[constants.UNK_WORD] 
@@ -152,19 +156,21 @@ def save_data_loader(dataloader, save_file):
 
 def preprocess():
     args = get_args()
-    src_word2index, _ = load_vocab(args.src_vocab)
+    src_word2index, _, src_lower = load_vocab(args.src_vocab)
 
     source = data_process(filelist=[args.source],
-                          word2index=src_word2index)
+                          word2index=src_word2index
+                          lower=src_lower)
 
     max_src_len = max(len(seq) for seq in source)
     data = {'source': source,
             'max_src_len': max_src_len}
 
     if args.target is not None:
-        tgt_word2index, _ = load_vocab(args.tgt_vocab)
+        tgt_word2index, _, tgt_lower = load_vocab(args.tgt_vocab)
         target = data_process(filelist=[args.target],
-                              word2index=tgt_word2index)
+                              word2index=tgt_word2index,
+                              lower=tgt_lower)
         max_tgt_len = max(len(seq) for seq in target)
         data['target'] = target
         data['max_tgt_len'] = max_tgt_len
