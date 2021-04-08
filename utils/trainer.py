@@ -35,6 +35,7 @@ def get_checkpoint(args):
 def get_dataloader(args, seed):
     if args.rank == 0:
         print("===> Get Dataloader...")
+    setattr(args, 'mode', 'train')
     train_dataset, batch_size = get_data(args=args)
     train_sampler = distributed.DistributedSampler(train_dataset,
                                                    shuffle=True,

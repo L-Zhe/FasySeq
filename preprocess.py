@@ -82,7 +82,7 @@ def sort_data_by_len(source, target_input=None, target_output=None):
 
 def get_tokens(data, args):
     total_len = len(data['source'])
-    train_flag = data.get('target') is not None
+    train_flag = args.mode == 'train'
     if train_flag:
         target_input = [[args.BOS_index] + seq for seq in data['target']]
         target_output = [seq + [args.EOS_index] for seq in data['target']]

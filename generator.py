@@ -65,6 +65,7 @@ def generate(args):
 
 def get_dataloader(args):
     data = None
+    setattr(args,'mode', 'test')
     if args.raw_file:
         source = data_process(filelist=[args.raw_file],
                               word2index=args.src_word2index)
