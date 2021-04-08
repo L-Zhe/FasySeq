@@ -2,7 +2,7 @@
 
 
 
-FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. It aims to provide a seq2seq model to researchers and developers, which can be trained efficiently and modified easily. This toolkit is based on Transformer(), and will add more seq2seq models in the future.
+FasySeq is a shorthand as a **Fa**st and e**asy** sequential modeling toolkit. It aims to provide a seq2seq model to researchers and developers, which can be trained efficiently and modified easily. This toolkit is based on Transformer([vaswani et al.](https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf)), and will add more seq2seq models in the future.
 
 ## Dependency
 
