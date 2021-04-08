@@ -1,14 +1,14 @@
-python createVocab.py --file /home/linz/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.en \
-                             /home/linz/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.de \
+python createVocab.py --file ./WMT14/bpe/train.tok.clean.bpe.32000.en \
+                             ./WMT14/bpe/train.tok.clean.bpe.32000.de \
                       --lower --save_path ./data/vocab/vocab.share
 
-python preprocess.py --source /home/linzhe/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.de \
-                     --target /home/linzhe/ACL2021/WMT14/bpe/train.tok.clean.bpe.32000.en \
+python preprocess.py --source ./WMT14/bpe/train.tok.clean.bpe.32000.de \
+                     --target ./WMT14/bpe/train.tok.clean.bpe.32000.en \
                      --src_vocab ./data/vocab/vocab.share \
                      --tgt_vocab ./data/vocab/vocab.share \
                      --save_file ./data/data.de2en
 
-python preprocess.py --source /home/linzhe/ACL2021/WMT14/bpe/newstest2014.tok.bpe.32000.en   \
+python preprocess.py --source ./WMT14/bpe/newstest2014.tok.bpe.32000.en   \
                      --src_vocab ./data/vocab/vocab.share \
                      --save_file ./data/sent.pt
 
@@ -26,8 +26,8 @@ python train.py --cuda_num 0 1 2 3 \
 
 
 python generator.py --cuda_num 3 \
-                 --raw_file /home/linz/ACL2021/WMT14/bpe/newstest2014.tok.bpe.32000.de \
-                 --ref_file /home/linz/ACL2021/WMT14/newstest2014.tok.bpe.32000.en  \
+                 --raw_file ./WMT14/bpe/newstest2014.tok.bpe.32000.de \
+                 --ref_file ./WMT14/newstest2014.tok.bpe.32000.en  \
                  --max_tokens 5000 \
                  --vocab ./data/vocab/vocab.share \
                  --decode_method beam \
