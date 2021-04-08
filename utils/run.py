@@ -83,7 +83,7 @@ def run(model, optimizer, criterion, rank, world_size,
     optimizer.zero_grad()
 
 
-def fit(args, start_epoch):
+def fit(args, epoch):
     torch.backends.cudnn.benchmark = True
     rank = args.rank
     world_size = args.world_size
@@ -95,7 +95,8 @@ def fit(args, start_epoch):
     model = args.model
     optimizer = args.optimizer
     criterion = args.criterion
-    for epoch in range(start_epoch, EPOCH):
+    while epoch < EPOCH:
+        epoch += 1
         if rank == 0:
             print('+' * 80)
             print(f'EPOCH: {epoch + 1}')
