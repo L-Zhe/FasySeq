@@ -19,6 +19,13 @@ NLTK
 
 ...
 
+## To Be Updated
+
+* top-k and top-p sampling
+* multi-GPU inference
+* length penalty in beam search
+* ...
+
 ## Preprocess
 
 ### Build Vocabulary
@@ -99,3 +106,10 @@ NLTK
 ## Postpreposs
 
 ``avg_param.py``
+
+The average parameter code we employed is the same as [fairseq](https://github.com/pytorch/fairseq).
+
+## License
+
+FasySeq(-py) is [Apache-2.0 License](https://github.com/L-Zhe/FasySeq/blob/main/LICENSE). The license applies to the pre-trained models as well.
+
