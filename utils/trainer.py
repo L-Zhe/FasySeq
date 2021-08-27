@@ -7,7 +7,7 @@ from    torch.utils.data import DataLoader, distributed
 import  torch.distributed as dist
 import  torch
 from    Transformer.Module import WarmUpOpt, LabelSmoothing
-from    preprocess import get_data
+from    preprocess import get_data, train_collate_fn
 
 
 def get_checkpoint(args):
@@ -23,7 +23,6 @@ def get_checkpoint(args):
     model_state_dict, optim_state_dict, start_epoch, model_config = check_point.restore()
     for key, value in model_config.items():
         setattr(args, key, value)
-    dist.barrier()
     if args.rank == 0:
         if model_state_dict is None:
             print("===> Load Checkpoint Failed. Training will start from scratch...")
@@ -48,9 +47,10 @@ def get_dataloader(args, seed):
                               shuffle=False,
                               num_workers=0,
                               pin_memory=True,
-                              sampler=train_sampler)
+                              sampler=train_sampler,
+                              collate_fn=train_collate_fn)
     setattr(args, 'train_data', train_loader)
-    dist.barrier()
+    dist.barrier(device_ids=[args.rank])
 
 
 def get_model(args, model_state_dict, optim_state_dict):
@@ -87,4 +87,4 @@ def trainer(gpu, args, seed):
     del model_state_dict, optim_state_dict
     show_info(args)
     fit(args=args,
-        start_epoch=start_epoch)
+        epoch=start_epoch)

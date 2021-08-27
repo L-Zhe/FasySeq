@@ -96,7 +96,7 @@ class transformer(nn.Module):
         assert kwargs['mode'] in ['train', 'test']
 
         if kwargs['mode'] == 'train':
-            src_mask = move2cuda(kwargs['src_mask'])
+            src_mask = move2cuda(move2cuda(kwargs['src_mask']))
             encoder_outputs = self.Encoder(self.src_embed(move2cuda(kwargs['source'])), src_mask)
             tgt_len = kwargs['target'].size(-1)
             outputs = self.Decoder(self.tgt_embed(move2cuda(kwargs['target'])),
@@ -106,8 +106,8 @@ class transformer(nn.Module):
             return outputs
 
         else:
-            src_mask = kwargs['src_mask'].cuda()
-            encoder_outputs = self.Encoder(self.src_embed(kwargs['source'].cuda()), src_mask)
+            src_mask = move2cuda(kwargs['src_mask'])
+            encoder_outputs = self.Encoder(self.src_embed(move2cuda(kwargs['source'])), src_mask)
             max_length = kwargs['max_length']
             return self.decode_search(decoder=self.Decoder.generate,
                                       tgt_embed=self.tgt_embed.single_embed,

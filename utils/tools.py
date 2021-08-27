@@ -28,7 +28,7 @@ def load_vocab(save_path):
 def show_info(args):
     if args.rank == 0:
         print('+' * 22)
-        print('EPOCH: \t\t%d' % args.epoch)
+        print('EPOCH: \t\t', args.epoch)
         if args.share_embed:
             print('Share Embed:\tTrue')
             print('Vocab Size: \t%d' % args.vocab_size)
@@ -38,7 +38,7 @@ def show_info(args):
             print('TGT Vocab Size: %d' % args.tgt_vocab_size)
             print('max_src_position: %d' % args.max_src_position)
             print('max_tgt_position: %d' % args.max_tgt_position)
-        print('USE_CUDA:\t', args.cuda)
+        print('USE_CUDA:\t', torch.cuda.is_available())
         print("Let's use", torch.cuda.device_count(), "GPUs!")
 
 
@@ -71,8 +71,6 @@ def sync_between_gpu(val):
 
 
 def move2cuda(data):
-    if data.dim() >= 3:
-        data = data[0]
     return data.cuda(non_blocking=True)
 
 

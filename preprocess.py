@@ -9,7 +9,6 @@ from    tqdm import tqdm
 from    utils.tools import pad_mask
 
 
-
 def get_args():
 
     parser = argparse.ArgumentParser()
@@ -159,7 +158,7 @@ def preprocess():
     src_word2index, _, src_lower = load_vocab(args.src_vocab)
 
     source = data_process(filelist=[args.source],
-                          word2index=src_word2index
+                          word2index=src_word2index,
                           lower=src_lower)
 
     max_src_len = max(len(seq) for seq in source)
@@ -176,6 +175,17 @@ def preprocess():
         data['max_tgt_len'] = max_tgt_len
 
     save_data_loader(data, args.save_file)
+
+
+def train_collate_fn(batch):
+    source, target_input, target_output, src_mask = batch[0]
+    return {'mode': 'train', 'source': source, 'target': target_input, 'src_mask': src_mask}, \
+           target_output
+
+
+def test_collate_fn(batch):
+    rank, source, src_mask = batch
+    return rank, {'source': source, 'src_mask': src_mask}
 
 
 if __name__ == '__main__':

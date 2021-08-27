@@ -88,19 +88,19 @@ def get_dataloader(args):
 def get_vocab_info(args):
     if args.file:
         if args.share_embed:
-            _, tgt_index2word = load_vocab(args.vocab)
+            _, tgt_index2word, _ = load_vocab(args.vocab)
             assert len(tgt_index2word) == args.vocab_size
         else:
-            _, tgt_index2word = load_vocab(args.tgt_vocab)
+            _, tgt_index2word, _ = load_vocab(args.tgt_vocab)
             assert len(tgt_index2word) == args.tgt_vocab_size
     else:
         if args.share_embed:
-            src_word2index, tgt_index2word = load_vocab(args.vocab)
+            src_word2index, tgt_index2word, _ = load_vocab(args.vocab)
             assert (len(src_word2index) == args.vocab_size)
 
         else:
-            src_word2index, _ = load_vocab(args.src_vocab)
-            _, tgt_index2word = load_vocab(args.tgt_vocab)
+            src_word2index, _, _ = load_vocab(args.src_vocab)
+            _, tgt_index2word, _ = load_vocab(args.tgt_vocab)
         assert (len(src_word2index) == args.src_vocab_size) 
         assert (len(tgt_index2word) == args.tgt_vocab_size)
         setattr(args, 'src_word2index', src_word2index)
@@ -120,8 +120,7 @@ def _main():
     setattr(args, 'EOS_index', constants.EOS_index)
     setattr(args, 'rank', 0)
     assert (args.file is None) ^ (args.raw_file is None)
-    if args.cuda:
-        os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(args.cuda_num)
+    os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(args.cuda_num)
     model_state_dict, model_config = load_model(args.model_path)
     for key, value in model_config.items():
         setattr(args, key, value)

@@ -13,13 +13,13 @@ warnings.filterwarnings("ignore")
 
 def get_vocab_info(args, share_embed):
     if share_embed:
-        _, tgt_index2word = load_vocab(args.vocab)
+        _, tgt_index2word, _ = load_vocab(args.vocab)
         vocab_size = len(tgt_index2word)
         src_vocab_size = vocab_size
         tgt_vocab_size = vocab_size
     else:
-        src_word2index, _ = load_vocab(args.src_vocab)
-        _, tgt_index2word = load_vocab(args.tgt_vocab)
+        src_word2index, _, _ = load_vocab(args.src_vocab)
+        _, tgt_index2word, _ = load_vocab(args.tgt_vocab)
         src_vocab_size = len(src_word2index)
         tgt_vocab_size = len(tgt_index2word)
         vocab_size = 0
@@ -28,7 +28,7 @@ def get_vocab_info(args, share_embed):
     setattr(args, 'tgt_vocab_size', tgt_vocab_size)
 
 
-def set_cuda(cuda, cuda_num):
+def set_cuda(cuda_num):
     environ['CUDA_VISIBLE_DEVICES'] = ','.join(cuda_num)
 
 
@@ -37,7 +37,7 @@ def train():
     torch.backends.cudnn.benchmark = True
     args = get_parser()
     get_vocab_info(args=args, share_embed=args.share_embed)
-    set_cuda(cuda=args.cuda, cuda_num=args.cuda_num)
+    set_cuda(cuda_num=args.cuda_num)
 
     environ['MASTER_ADDR'] = 'localhost'
     environ['MASTER_PORT'] = get_free_port()
