@@ -65,10 +65,11 @@ def generate(args):
 
 def get_dataloader(args):
     data = None
-    setattr(args,'mode', 'test')
+    setattr(args, 'mode', 'test')
     if args.raw_file:
         source = data_process(filelist=[args.raw_file],
-                              word2index=args.src_word2index)
+                              word2index=args.src_word2index,
+                              lower=args.lower)
         del args.src_word2index
         max_src_len = max(len(seq) for seq in source)
 
@@ -88,24 +89,24 @@ def get_dataloader(args):
 def get_vocab_info(args):
     if args.file:
         if args.share_embed:
-            _, tgt_index2word, _ = load_vocab(args.vocab)
+            _, tgt_index2word, lower = load_vocab(args.vocab)
             assert len(tgt_index2word) == args.vocab_size
         else:
-            _, tgt_index2word, _ = load_vocab(args.tgt_vocab)
+            _, tgt_index2word, lower = load_vocab(args.tgt_vocab)
             assert len(tgt_index2word) == args.tgt_vocab_size
     else:
         if args.share_embed:
-            src_word2index, tgt_index2word, _ = load_vocab(args.vocab)
+            src_word2index, tgt_index2word, lower = load_vocab(args.vocab)
             assert (len(src_word2index) == args.vocab_size)
 
         else:
-            src_word2index, _, _ = load_vocab(args.src_vocab)
+            src_word2index, _, lower = load_vocab(args.src_vocab)
             _, tgt_index2word, _ = load_vocab(args.tgt_vocab)
         assert (len(src_word2index) == args.src_vocab_size) 
         assert (len(tgt_index2word) == args.tgt_vocab_size)
         setattr(args, 'src_word2index', src_word2index)
     setattr(args, 'tgt_index2word', tgt_index2word)
-
+    setattr(args, 'lower', lower)
     if args.position_method == 'Embedding':
         if args.share_embed:
             args.max_length = min(args.max_length, max(args.max_src_position, args.max_tgt_position))
