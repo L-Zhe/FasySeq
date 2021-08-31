@@ -16,9 +16,9 @@ NLTK
 | Train Dataset|Test Dataset       | BLEU | checkpoint |
 |:-------------|-------------      | :----: | :-----------:|
 | WMT-14       |newstest2013-en2de | 25.83| [url](https://github.com/L-Zhe/FasySeq/releases/tag/checkpoint)    |
-| WMT-14       |newstest2014-en2de | 27.07|[url](https://github.com/L-Zhe/FasySeq/releases/tag/checkpoint)    |
-| WMT-14       |newstest2013-de2en | |
-| WMT-14       |newstest2014-de2en | |
+| WMT-14       |newstest2014-en2de | 27.07| [url](https://github.com/L-Zhe/FasySeq/releases/tag/checkpoint)    |
+| WMT-14       |newstest2013-de2en | 31.14| [url](https://github.com/L-Zhe/FasySeq/releases/tag/checkpoint)    |
+| WMT-14       |newstest2014-de2en | 30.80| [url](https://github.com/L-Zhe/FasySeq/releases/tag/checkpoint)    |
 
 
 ## Structure
